@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr Juddo — Système de Consultation Médicale</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0F6E56; --teal-light: #E1F5EE; --teal-mid: #1D9E75; --teal-dark: #085041;
+    --navy: #0C2340; --navy-mid: #185FA5; --navy-light: #E6F1FB;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-mid: #EF9F27;
+    --coral: #993C1D; --coral-light: #FAECE7;
+    --gray-bg: #F7F6F2; --gray-border: #D3D1C7; --gray-text: #5F5E5A; --gray-dark: #2C2C2A;
+    --white: #FFFFFF; --red: #A32D2D; --red-light: #FCEBEB;
+    --success: #3B6D11; --success-light: #EAF3DE;
+    --font-display: 'Crimson Pro', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --shadow: 0 2px 16px rgba(12,35,64,0.08);
+    --shadow-lg: 0 8px 32px rgba(12,35,64,0.14);
+    --radius: 10px; --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--gray-bg); color: var(--gray-dark); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--navy); color: white; padding: 0; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg); }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 32px; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-mark { width: 44px; height: 44px; background: var(--teal-mid); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .logo-mark svg { width: 26px; height: 26px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; }
+  .logo-text { font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 2px; text-transform: uppercase; margin-top: -2px; font-weight: 300; }
+  .header-actions { display: flex; gap: 10px; }
+  .btn { padding: 8px 18px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; transition: all 0.18s; }
+  .btn-ghost { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.2); }
+  .btn-primary { background: var(--teal-mid); color: white; }
+  .btn-primary:hover { background: var(--teal); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: #791F1F; }
+  .btn-amber { background: var(--amber); color: white; }
+  .btn-amber:hover { background: #633806; }
+
+  /* NAV */
+  .nav { background: var(--navy-mid); display: flex; overflow-x: auto; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-item { padding: 10px 20px; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: all 0.18s; letter-spacing: 0.3px; }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.07); }
+  .nav-item.active { color: white; border-bottom-color: var(--teal-mid); background: rgba(255,255,255,0.1); }
+  .nav-item .badge { display: inline-flex; width: 18px; height: 18px; background: var(--teal-mid); color: white; border-radius: 50%; font-size: 10px; align-items: center; justify-content: center; margin-left: 6px; }
+  .nav-item .badge.complete { background: var(--success); }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 24px 80px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: var(--radius); border: 1px solid var(--gray-border); margin-bottom: 20px; overflow: hidden; }
+  .card-header { background: var(--navy); color: white; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+  .card-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+  .card-header .icon { width: 28px; height: 28px; background: rgba(255,255,255,0.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .card-body { padding: 20px; }
+  .card-header-teal { background: linear-gradient(135deg, var(--teal-dark), var(--teal)); }
+  .card-header-amber { background: linear-gradient(135deg, #633806, var(--amber)); }
+  .card-header-coral { background: linear-gradient(135deg, #4A1B0C, var(--coral)); }
+  .card-header-navy { background: var(--navy); }
+
+  /* FORM ELEMENTS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--teal-dark); text-transform: uppercase; letter-spacing: 0.8px; }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-border); border-radius: var(--radius-sm);
+    font-family: var(--font-body); font-size: 14px; color: var(--gray-dark); background: white;
+    transition: border-color 0.18s, box-shadow 0.18s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--teal-mid); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+  select { cursor: pointer; }
+
+  /* CHECKBOXES */
+  .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--gray-border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; }
+  .checkbox-item:hover { border-color: var(--teal-mid); background: var(--teal-light); }
+  .checkbox-item input[type="checkbox"] { accent-color: var(--teal); width: 15px; height: 15px; cursor: pointer; }
+  .checkbox-item.checked { border-color: var(--teal-mid); background: var(--teal-light); }
+  .checkbox-item label { font-size: 13px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--gray-dark); cursor: pointer; margin: 0; }
+
+  /* MOTIF TAGS */
+  .motif-area { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .motif-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--navy-light); color: var(--navy-mid); border-radius: 20px; font-size: 13px; font-weight: 500; }
+  .motif-tag button { background: none; border: none; cursor: pointer; color: var(--navy-mid); font-size: 16px; line-height: 1; padding: 0; }
+  .motif-input-wrap { display: flex; gap: 8px; margin-top: 8px; }
+  .motif-input-wrap input { flex: 1; }
+
+  /* DRUG TABLE */
+  .drug-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .drug-table th { background: var(--navy); color: white; padding: 10px 14px; text-align: left; font-weight: 500; font-size: 12px; letter-spacing: 0.5px; }
+  .drug-table td { padding: 10px 14px; border-bottom: 1px solid var(--gray-border); vertical-align: top; }
+  .drug-table tr:hover td { background: var(--gray-bg); }
+  .drug-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin: 1px; }
+  .drug-tag.ci { background: var(--red-light); color: var(--red); }
+  .drug-tag.pc { background: var(--amber-light); color: var(--amber); }
+  .drug-tag.ok { background: var(--success-light); color: var(--success); }
+
+  /* AI PANEL */
+  .ai-panel { background: linear-gradient(135deg, var(--navy-light), #EEF4FB); border: 1px solid var(--navy-mid); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .ai-label { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+  .ai-content { font-size: 14px; line-height: 1.8; color: var(--gray-dark); white-space: pre-wrap; }
+  .ai-content.loading { color: var(--gray-text); font-style: italic; }
+  .ai-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--navy-light); border-top-color: var(--navy-mid); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ORDONNANCE */
+  .prescription-box { border: 2px solid var(--navy); border-radius: var(--radius); padding: 24px; font-family: var(--font-body); }
+  .rx-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--navy); }
+  .rx-logo { font-family: var(--font-display); font-size: 32px; color: var(--navy); font-weight: 600; }
+  .rx-date { font-size: 13px; color: var(--gray-text); }
+  .rx-patient { background: var(--gray-bg); padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 20px; font-size: 14px; }
+  .rx-meds { margin-bottom: 24px; }
+  .rx-med-item { padding: 10px 0; border-bottom: 1px dashed var(--gray-border); }
+  .rx-med-item:last-child { border-bottom: none; }
+  .rx-footer { display: flex; justify-content: flex-end; margin-top: 40px; }
+  .rx-sig { text-align: center; }
+  .sig-line { width: 200px; border-top: 1.5px solid var(--navy); margin: 0 auto 6px; }
+
+  /* ALERTS */
+  .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .alert-warning { background: var(--amber-light); border-left: 4px solid var(--amber); color: #5a3200; }
+  .alert-danger { background: var(--red-light); border-left: 4px solid var(--red); color: var(--red); }
+  .alert-success { background: var(--success-light); border-left: 4px solid var(--success); color: var(--success); }
+  .alert-info { background: var(--navy-light); border-left: 4px solid var(--navy-mid); color: var(--navy); }
+
+  /* PRINT STYLES */
+  @media print {
+    body > .header, body > .header *, .nav, .section-nav, .no-print,
+    .container, #ordonnance-modal > div > div:last-child { display: none !important; }
+    body { background: white; margin: 0; padding: 0; }
+    #print-zone { display: block !important; padding: 20px; }
+  }
+  #print-zone { display: none; }
+
+  /* RÉSULTATS / UPLOAD */
+  .result-entry { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px; }
+  .result-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .result-name { font-weight: 600; font-size: 14px; color: var(--navy); }
+  .result-val { font-size: 13px; }
+  .result-val.abnormal-high { color: var(--red); font-weight: 600; }
+  .result-val.abnormal-low { color: var(--amber); font-weight: 600; }
+  .result-val.normal { color: var(--success); }
+  .upload-zone { border: 2px dashed var(--gray-border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--gray-bg); }
+  .upload-zone:hover { border-color: var(--teal-mid); background: var(--teal-light); }
+  .upload-zone.dragover { border-color: var(--teal); background: var(--teal-light); }
+  .upload-icon { font-size: 40px; margin-bottom: 10px; }
+  .file-preview { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--navy-light); border-radius: var(--radius-sm); margin-top: 10px; font-size: 13px; }
+
+  /* DEMANDE EXAMENS PDF */
+  .demande-pdf-box { font-family: var(--font-body); max-width: 700px; margin: 0 auto; }
+  .demande-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 16px; border-bottom: 3px solid var(--navy); margin-bottom: 20px; }
+  .demande-logo { font-family: var(--font-display); font-size: 28px; color: var(--navy); font-weight: 600; }
+  .demande-section { margin-bottom: 18px; }
+  .demande-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--teal-dark); border-bottom: 1px solid var(--teal-light); padding-bottom: 4px; margin-bottom: 10px; }
+  .demande-exam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+  .demande-exam-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; padding: 4px 0; }
+  .demande-exam-item::before { content: '☐'; font-size: 16px; line-height: 1; color: var(--navy); flex-shrink: 0; }
+  .demande-urgence { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .demande-urgence.urgent { background: var(--red-light); color: var(--red); }
+  .demande-urgence.normal { background: var(--teal-light); color: var(--teal-dark); }
+  .demande-footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .demande-sig { text-align: center; }
+  .demande-sig-line { width: 180px; border-top: 1.5px solid var(--navy); margin: 0 auto 6px; }
+  .demande-patient-box { background: var(--navy); color: white; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 20px; font-size: 13px; }
+
+  /* PROGRESS BAR */
+  .progress-bar { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: var(--teal-mid); border-radius: 2px; transition: width 0.4s; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--gray-border); margin: 20px 0; }
+  .section-title { font-family: var(--font-display); font-size: 22px; color: var(--navy); margin-bottom: 6px; font-weight: 600; }
+  .section-sub { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; }
+
+  /* COMPLETION DOTS */
+  .step-dots { display: flex; gap: 4px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: background 0.3s; }
+  .dot.done { background: var(--teal-mid); }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+    .header-inner { padding: 12px 16px; }
+    .container { padding: 16px 12px 60px; }
+    .logo-text { font-size: 22px; }
+  }
+
+  /* BUTTONS ROW */
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  /* TABS within section */
+  .inner-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--gray-border); }
+  .inner-tab { padding: 10px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--gray-text); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .inner-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .inner-tab-panel { display: none; }
+  .inner-tab-panel.active { display: block; }
+
+  /* REVUE FONCTIONNELLE */
+  .rf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rf-item { border: 1px solid var(--gray-border); border-radius: var(--radius-sm); overflow: hidden; }
+  .rf-item-header { background: var(--navy); color: white; padding: 8px 14px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+  .rf-item-body { padding: 10px 14px; }
+  .rf-symptoms { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .rf-symptom { padding: 4px 10px; border: 1px solid var(--gray-border); border-radius: 12px; font-size: 12px; cursor: pointer; transition: all 0.15s; color: var(--gray-dark); }
+  .rf-symptom:hover { border-color: var(--teal-mid); color: var(--teal); }
+  .rf-symptom.selected { background: var(--teal); border-color: var(--teal); color: white; }
+  .rf-symptom.negative { background: var(--coral-light); border-color: var(--coral); color: var(--coral); }
+
+  /* MEDS SEARCH */
+  .med-search-wrap { position: relative; }
+  .med-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid var(--teal-mid); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); z-index: 50; max-height: 200px; overflow-y: auto; }
+  .med-option { padding: 9px 14px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--gray-border); transition: background 0.1s; }
+  .med-option:hover { background: var(--teal-light); }
+  .med-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .med-tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--navy-light); color: var(--navy-mid); border-radius: 16px; font-size: 12px; }
+  .med-tag button { background: none; border: none; cursor: pointer; color: var(--navy-mid); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="white" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">Dr Juddo</div>
+        <div class="logo-sub">Système de Consultation Médicale IA</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="imprimerOrdonnance()">🖨️ Imprimer</button>
+      <button class="btn btn-amber" onclick="genererOrdonnance()">📋 Ordonnance</button>
+      <button class="btn btn-primary" onclick="analyserAvecIA()">🤖 Analyse IA</button>
+      <button class="btn btn-danger" onclick="nouvelleConsultation()">+ Nouveau</button>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-item active" onclick="aller(0)" id="nav0">① Identification</div>
+    <div class="nav-item" onclick="aller(1)" id="nav1">② Motif <span class="badge" id="badge-motif">0</span></div>
+    <div class="nav-item" onclick="aller(2)" id="nav2">③ Anamnèse</div>
+    <div class="nav-item" onclick="aller(3)" id="nav3">④ Antécédents</div>
+    <div class="nav-item" onclick="aller(4)" id="nav4">⑤ Ob-Gyn</div>
+    <div class="nav-item" onclick="aller(5)" id="nav5">⑥ Médicaments</div>
+    <div class="nav-item" onclick="aller(6)" id="nav6">⑦ Allergies</div>
+    <div class="nav-item" onclick="aller(7)" id="nav7">⑧ ATCD Familiaux</div>
+    <div class="nav-item" onclick="aller(8)" id="nav8">⑨ Habitudes</div>
+    <div class="nav-item" onclick="aller(9)" id="nav9">⑩ Revue Fonc.</div>
+    <div class="nav-item" onclick="aller(10)" id="nav10">⑪ Examen Physique</div>
+    <div class="nav-item" onclick="aller(11)" id="nav11">⑫ Examens</div>
+    <div class="nav-item" onclick="aller(12)" id="nav12">⑬ Impressions IA</div>
+    <div class="nav-item" onclick="aller(13)" id="nav13">⑭ Conduite à Tenir</div>
+    <div class="nav-item" onclick="aller(14)" id="nav14">⑮ Demande Examens PDF</div>
+    <div class="nav-item" onclick="aller(15)" id="nav15">⑯ Résultats &amp; Analyse IA</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- SECTION 0: IDENTIFICATION -->
+<div class="section active" id="s0">
+  <div class="section-title">Fiche d'Identification du Patient</div>
+  <div class="section-sub">Informations démographiques et administratives</div>
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">👤</div><h3>Données Personnelles</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nom de famille</label><input type="text" id="nom" placeholder="ex: JEAN-BAPTISTE" oninput="synchroNom()"></div>
+        <div class="form-group"><label>Prénoms</label><input type="text" id="prenom" placeholder="ex: Marie Carole" oninput="synchroNom()"></div>
+        <div class="form-group"><label>Date de naissance</label><input type="date" id="ddn" onchange="calculerAge()"></div>
+        <div class="form-group"><label>Âge (années)</label><input type="number" id="age" placeholder="ex: 35" min="0" max="120"></div>
+        <div class="form-group"><label>Sexe</label>
+          <select id="sexe" onchange="toggleObGyn()">
+            <option value="">— Sélectionner —</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+            <option value="Autre">Autre / Non précisé</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Niveau d'éducation</label>
+          <select id="education">
+            <option value="">— Sélectionner —</option>
+            <option>Non scolarisé</option>
+            <option>Primaire</option>
+            <option>Secondaire (collège)</option>
+            <option>Secondaire (lycée)</option>
+            <option>Technique / Professionnel</option>
+            <option>Universitaire — Licence</option>
+            <option>Universitaire — Master</option>
+            <option>Universitaire — Doctorat</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Profession</label><input type="text" id="profession" placeholder="ex: Enseignant, Infirmier..."></div>
+        <div class="form-group"><label>État civil</label>
+          <select id="etatcivil">
+            <option value="">— Sélectionner —</option>
+            <option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option>
+            <option>Veuf/Veuve</option><option>Union libre</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Poids (kg)</label><input type="number" id="poids" placeholder="ex: 72" min="1" max="300" onchange="calculerIMC()"></div>
+        <div class="form-group"><label>Taille (cm)</label><input type="number" id="taille" placeholder="ex: 165" min="30" max="250" onchange="calculerIMC()"></div>
+        <div class="form-group"><label>IMC calculé</label><input type="text" id="imc" readonly placeholder="— Auto —" style="background:#f7f6f2; color: var(--teal-dark); font-weight:600;"></div>
+        <div class="form-group"><label>No. de dossier</label><input type="text" id="dossier" placeholder="ex: 2025-0001"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Date de consultation</label><input type="date" id="date_consult" value=""></div>
+        <div class="form-group"><label>Médecin / Clinicien</label><input type="text" id="medecin" placeholder="ex: Dr Smith PIERRE"></div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row" style="margin-top:16px;">
+    <button class="btn btn-primary" onclick="aller(1)">Suivant : Motif →</button>
+  </div>
+</div>
+
+<!-- SECTION 1: MOTIF -->
+<div class="section" id="s1">
+  <div class="section-title">Motif(s) de Consultation</div>
+  <div class="section-sub">Le patient peut présenter plusieurs motifs</div>
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">📋</div><h3>Motifs de Consultation</h3></div>
+    <div class="card-body">
+      <div class="motif-input-wrap">
+        <input type="text" id="motif-input" placeholder="Saisir un motif (ex: Céphalée, Dyspnée, Fièvre...)" onkeydown="if(event.key==='Enter')ajouterMotif()">
+        <button class="btn btn-primary" onclick="ajouterMotif()">+ Ajouter</button>
+      </div>
+      <div class="motif-area" id="motifs-container"></div>
+      <div class="divider"></div>
+      <label style="display:block; margin-bottom:8px;">Motifs fréquents (cliquer pour ajouter)</label>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Fièvre')">🌡️ Fièvre</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Céphalée')">🧠 Céphalée</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Douleur abdominale')">🫁 Douleur abdominale</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Dyspnée')">💨 Dyspnée</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Toux')">😮‍💨 Toux</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Douleur thoracique')">❤️ Douleur thoracique</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Vomissements')">🤢 Vomissements</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Diarrhée')">💧 Diarrhée</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Vertiges')">🌀 Vertiges</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Éruption cutanée')">🩺 Éruption cutanée</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Asthénie / Fatigue')">😴 Asthénie</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Œdème des membres')">🦵 Œdème</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Palpitations')">💓 Palpitations</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Crise convulsive')">⚡ Convulsion</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Perte de poids')">⚖️ Amaigrissement</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Sueurs nocturnes')">🌙 Sueurs nocturnes</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Dysurie')">🚽 Dysurie</span>
+        <span class="rf-symptom" onclick="ajouterMotifRapide('Arthralgie')">🦴 Arthralgie</span>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(0)">← Retour</button><button class="btn btn-primary" onclick="aller(2)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 2: ANAMNÈSE -->
+<div class="section" id="s2">
+  <div class="section-title">Anamnèse — Histoire de la Maladie</div>
+  <div class="section-sub">Description chronologique et détaillée de la plainte principale</div>
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">📝</div><h3>Histoire de la Maladie</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Mode de début</label>
+          <select id="mode_debut">
+            <option value="">—</option><option>Brutal / Soudain</option><option>Progressif</option>
+            <option>Insidieux</option><option>Récidivant</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Date de début</label><input type="date" id="date_debut"></div>
+        <div class="form-group"><label>Durée des symptômes</label><input type="text" id="duree" placeholder="ex: 3 jours, 2 semaines"></div>
+        <div class="form-group"><label>Évolution</label>
+          <select id="evolution">
+            <option value="">—</option><option>Stable</option><option>Aggravation progressive</option>
+            <option>Aggravation rapide</option><option>Amélioration spontanée</option>
+            <option>Fluctuante / Par crises</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group full" style="margin-top:14px;">
+        <label>Description complète de l'histoire de la maladie</label>
+        <textarea id="anamnese" style="min-height:140px;" placeholder="Décrivez l'histoire de la maladie de façon chronologique : circonstances d'apparition, caractéristiques des symptômes (siège, irradiation, type, intensité, facteurs déclenchants/soulageants), évolution, traitements déjà reçus..."></textarea>
+      </div>
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="form-group">
+          <label>Facteurs déclenchants</label>
+          <input type="text" id="facteurs_dec" placeholder="ex: effort, stress, alimentation...">
+        </div>
+        <div class="form-group">
+          <label>Facteurs soulageants</label>
+          <input type="text" id="facteurs_soul" placeholder="ex: repos, antalgiques...">
+        </div>
+        <div class="form-group">
+          <label>Traitements antérieurs reçus</label>
+          <input type="text" id="ttt_anterieurs" placeholder="ex: Paracétamol 3j, sans amélioration">
+        </div>
+        <div class="form-group">
+          <label>Consultation antérieure pour ce problème</label>
+          <select id="consult_ante">
+            <option value="">—</option><option>Non</option><option>Oui — médecin généraliste</option>
+            <option>Oui — spécialiste</option><option>Oui — urgences</option><option>Oui — tradithérapeute</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(1)">← Retour</button><button class="btn btn-primary" onclick="aller(3)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 3: ANTÉCÉDENTS -->
+<div class="section" id="s3">
+  <div class="section-title">Antécédents Médicaux</div>
+  <div class="section-sub">Personnel, traumatologique et chirurgical</div>
+
+  <div class="card">
+    <div class="card-header card-header-navy"><div class="icon">🏥</div><h3>Antécédents Médicaux Personnels</h3></div>
+    <div class="card-body">
+      <div class="checkbox-grid" id="atcd-med-grid">
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_hta"><label for="cb_hta">HTA</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_diab"><label for="cb_diab">Diabète</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_epilepsie"><label for="cb_epilepsie">Épilepsie</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_asthme"><label for="cb_asthme">Asthme</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_anemie_fal"><label for="cb_anemie_fal">Anémie falciforme</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_muco"><label for="cb_muco">Mucoviscidose</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_avc"><label for="cb_avc">AVC</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_irc"><label for="cb_irc">IRC / Maladie rénale</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_ic"><label for="cb_ic">Insuffisance cardiaque</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_bpco"><label for="cb_bpco">BPCO</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_tb"><label for="cb_tb">Tuberculose</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_vih"><label for="cb_vih">VIH / SIDA</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_cancer"><label for="cb_cancer">Cancer (préciser)</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_lupus"><label for="cb_lupus">Lupus</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_poly"><label for="cb_poly">Polyarthrite rhumatoïde</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_glaucome"><label for="cb_glaucome">Glaucome</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_depre"><label for="cb_depre">Dépression / Psychiatrie</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_hypo"><label for="cb_hypo">Hypothyroïdie</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_hyper"><label for="cb_hyper">Hyperthyroïdie</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="cb_rgo"><label for="cb_rgo">RGO / Ulcère gastrique</label></div>
+      </div>
+      <div id="glaucome-type" style="display:none; margin-top:12px;">
+        <div class="form-group"><label>Type de glaucome</label>
+          <select id="type_glaucome">
+            <option value="">— Préciser —</option>
+            <option>Glaucome primitif à angle ouvert (GPAO)</option>
+            <option>Glaucome à angle fermé (GAF)</option>
+            <option>Glaucome secondaire</option>
+            <option>Glaucome à tension normale</option>
+            <option>Glaucome néovasculaire</option>
+            <option>Glaucome congénital</option>
+          </select>
+        </div>
+      </div>
+      <div id="cancer-type" style="display:none; margin-top:12px;">
+        <div class="form-group"><label>Type de cancer / localisation</label>
+          <input type="text" id="cancer_type_text" placeholder="ex: Cancer du sein stade II, Cancer du colon..."></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group"><label>Autre(s) antécédent(s) médical(aux)</label>
+        <textarea id="atcd_autre" placeholder="Autres pathologies non listées ci-dessus..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">🔪</div><h3>Antécédents Traumatologiques et Chirurgicaux</h3></div>
+    <div class="card-body">
+      <div class="form-group"><label>Traumatismes</label>
+        <textarea id="atcd_trauma" placeholder="ex: Fracture du fémur droit en 2018 (chirurgie d'ostéosynthèse), Traumatisme crânien..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label>Interventions chirurgicales</label>
+        <textarea id="atcd_chir" placeholder="ex: Appendicectomie (2015), Cholécystectomie laparoscopique (2020), Césarienne..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:12px;"><label>Hospitalisations antérieures</label>
+        <textarea id="atcd_hospit" placeholder="ex: Hospitalisation en 2022 pour crise vaso-occlusive..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(2)">← Retour</button><button class="btn btn-primary" onclick="aller(4)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 4: OB-GYN -->
+<div class="section" id="s4">
+  <div class="section-title">Antécédents Obstétricaux et Gynécologiques</div>
+  <div class="section-sub" id="obgyn-sub">Section réservée aux patientes de sexe féminin</div>
+  <div id="obgyn-block">
+    <div class="card">
+      <div class="card-header" style="background: linear-gradient(135deg, #4B1528, #993556);"><div class="icon">🌸</div><h3>Histoire Gynécologique</h3></div>
+      <div class="card-body">
+        <div class="form-grid-3">
+          <div class="form-group"><label>Ménarche (âge)</label><input type="number" id="menarche" placeholder="ex: 12" min="8" max="20"></div>
+          <div class="form-group"><label>Cycle</label>
+            <select id="cycle">
+              <option value="">—</option><option>Régulier</option><option>Irrégulier</option><option>Aménorrhée</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Durée du cycle (jours)</label><input type="number" id="duree_cycle" placeholder="ex: 28" min="21" max="45"></div>
+          <div class="form-group"><label>Durée des menstruations (jours)</label><input type="number" id="duree_regles" placeholder="ex: 5" min="1" max="10"></div>
+          <div class="form-group"><label>Flux menstruel</label>
+            <select id="flux">
+              <option value="">—</option><option>Normal</option><option>Hypomenorrhée</option>
+              <option>Hyperménorrhée / Ménorragie</option><option>Métrorragie</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Dysménorrhée</label>
+            <select id="dysmenorrhee">
+              <option value="">—</option><option>Absente</option><option>Légère</option>
+              <option>Modérée</option><option>Sévère (invalidante)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Date des dernières règles (DDR)</label><input type="date" id="ddr"></div>
+          <div class="form-group"><label>Contraception actuelle</label>
+            <select id="contraception">
+              <option value="">—</option><option>Aucune</option><option>Pilule œstroprogestative</option>
+              <option>Pilule progestative</option><option>DIU cuivre</option><option>DIU hormonal</option>
+              <option>Implant</option><option>Préservatif</option><option>Stérilisation tubaire</option><option>Autre</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Ménopause</label>
+            <select id="menopause">
+              <option value="">—</option><option>Non</option><option>Oui — naturelle</option>
+              <option>Oui — chirurgicale</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="background: linear-gradient(135deg, #4B1528, #993556);"><div class="icon">🤰</div><h3>Antécédents Obstétricaux</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group"><label>Gestité (G)</label><input type="number" id="gestite" placeholder="Nombre total de grossesses" min="0"></div>
+          <div class="form-group"><label>Parité (P)</label><input type="number" id="parite" placeholder="Naissances à terme" min="0"></div>
+          <div class="form-group"><label>Accouchements prématurés (Pr)</label><input type="number" id="premature" placeholder="Avant 37 SA" min="0"></div>
+          <div class="form-group"><label>Avortements (A)</label><input type="number" id="avort" placeholder="Fausses couches spontanées" min="0"></div>
+          <div class="form-group"><label>Enfants vivants (Ev)</label><input type="number" id="ev" placeholder="Enfants en vie actuellement" min="0"></div>
+          <div class="form-group"><label>Mortinatalité</label><input type="number" id="mortinat" placeholder="Morts-nés" min="0"></div>
+          <div class="form-group"><label>Mode d'accouchement habituel</label>
+            <select id="mode_acc">
+              <option value="">—</option><option>Voie basse spontanée</option><option>Voie basse instrumentale</option>
+              <option>Césarienne</option><option>Mixte</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Grossesse actuelle</label>
+            <select id="grossesse_actuelle">
+              <option value="">—</option><option>Non</option><option>Oui — T1 (0-12 SA)</option>
+              <option>Oui — T2 (13-26 SA)</option><option>Oui — T3 (27 SA+)</option><option>Allaitement</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-group"><label>Antécédent de Frottis Cervical (Pap Test)</label>
+          <select id="pap_test">
+            <option value="">—</option><option>Jamais réalisé</option>
+            <option>Oui — résultat normal (date : )</option>
+            <option>Oui — résultat anormal (préciser)</option>
+            <option>Oui — CIN (préciser grade)</option>
+            <option>Cancer du col confirmé</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top:12px;"><label>Précisions / remarques obstétricales</label>
+          <textarea id="obs_remarques" placeholder="Complications obstétricales, pathologies de grossesse (HTA gravidique, diabète gestationnel, prééclampsie, RCIU)..." style="min-height:80px;"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(3)">← Retour</button><button class="btn btn-primary" onclick="aller(5)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 5: MÉDICAMENTS -->
+<div class="section" id="s5">
+  <div class="section-title">Antécédents Médicamenteux</div>
+  <div class="section-sub">Tous les médicaments actuels et passés, y compris phytothérapie et automédication</div>
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">💊</div><h3>Médicaments en Cours</h3></div>
+    <div class="card-body">
+      <div class="motif-input-wrap">
+        <div class="med-search-wrap" style="flex:1; position:relative;">
+          <input type="text" id="med-input" placeholder="Rechercher un médicament ou saisir DCI / nom commercial..." oninput="rechercherMed(this.value)" onkeydown="if(event.key==='Enter'){ajouterMed();}" autocomplete="off">
+          <div class="med-dropdown" id="med-dropdown" style="display:none;"></div>
+        </div>
+        <input type="text" id="med-dose" placeholder="Posologie" style="max-width:150px;">
+        <button class="btn btn-primary" onclick="ajouterMed()">+ Ajouter</button>
+      </div>
+      <div class="med-list" id="meds-list"></div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>Médicaments phytothérapiques / traditionnels / automédication</label>
+        <textarea id="meds_phyto" placeholder="ex: Tisanes, plantes médicinales, remèdes traditionnels, suppléments, vitamines..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(4)">← Retour</button><button class="btn btn-primary" onclick="aller(6)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 6: ALLERGIES -->
+<div class="section" id="s6">
+  <div class="section-title">Allergies</div>
+  <div class="section-sub">Médicaments, aliments, environnementaux</div>
+  <div class="card">
+    <div class="card-header card-header-coral"><div class="icon">⚠️</div><h3>Profil Allergique</h3></div>
+    <div class="card-body">
+      <div class="form-group"><label>Allergie médicamenteuse</label>
+        <textarea id="allergie_med" placeholder="ex: Pénicilline → urticaire, Sulfamides → anaphylaxie, AINS → bronchospasme..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Allergie alimentaire</label>
+        <textarea id="allergie_alim" placeholder="ex: Arachide, Fruits de mer, Gluten (cœliaquie), Lactose..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Allergie environnementale / autre</label>
+        <textarea id="allergie_env" placeholder="ex: Latex, Pollen, Acariens, Venin d'insecte, Produits de contraste..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Intolérances (non-allergiques)</label>
+        <textarea id="intolerances" placeholder="ex: Intolérance au lactose, effets secondaires connus à certains médicaments..." style="min-height:60px;"></textarea>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="alert alert-danger">⚠️ Les allergies documentées seront prises en compte dans les recommandations pharmacologiques de l'IA.</div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(5)">← Retour</button><button class="btn btn-primary" onclick="aller(7)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 7: ANTÉCÉDENTS FAMILIAUX -->
+<div class="section" id="s7">
+  <div class="section-title">Antécédents Hérédocollateraux</div>
+  <div class="section-sub">Maladies présentes dans la famille (parents, frères, sœurs, enfants)</div>
+  <div class="card">
+    <div class="card-header card-header-navy"><div class="icon">🧬</div><h3>Antécédents Familiaux</h3></div>
+    <div class="card-body">
+      <div class="checkbox-grid">
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_hta"><label for="fam_hta">HTA</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_diab"><label for="fam_diab">Diabète</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_avc"><label for="fam_avc">AVC</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_mort_sub"><label for="fam_mort_sub">Mort subite</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_asthme"><label for="fam_asthme">Asthme</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_anemie"><label for="fam_anemie">Anémie falciforme</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_muco"><label for="fam_muco">Mucoviscidose</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_cancer"><label for="fam_cancer">Cancer</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_cardio"><label for="fam_cardio">Cardiopathie ischémique</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_tb"><label for="fam_tb">Tuberculose</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_epilepsie"><label for="fam_epilepsie">Épilepsie</label></div>
+        <div class="checkbox-item" onclick="toggleCB(this)"><input type="checkbox" id="fam_troubles_mentaux"><label for="fam_troubles_mentaux">Troubles mentaux</label></div>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Précisions / autres antécédents familiaux</label>
+        <textarea id="fam_autre" placeholder="Préciser le degré de parenté et les pathologies concernées. ex: Père — HTA + IDM à 58 ans ; Mère — Diabète type 2 ; Frère aîné — AVC à 45 ans..." style="min-height:80px;"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(6)">← Retour</button><button class="btn btn-primary" onclick="aller(8)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 8: HABITUDES -->
+<div class="section" id="s8">
+  <div class="section-title">Habitudes de Vie</div>
+  <div class="section-sub">Tabac, alcool, substances, alimentation, activité physique</div>
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">🚬</div><h3>Tabagisme</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Statut tabagique</label>
+          <select id="tabac_statut" onchange="toggleTabac()">
+            <option value="">—</option><option value="non">Non-fumeur</option>
+            <option value="oui">Fumeur actif</option><option value="ex">Ex-fumeur</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Type de tabac</label>
+          <select id="tabac_type">
+            <option value="">—</option><option>Cigarettes industrielles</option><option>Cigarettes roulées</option>
+            <option>Cigares</option><option>Pipe</option><option>Chicha</option><option>E-cigarette / Vapotage</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Nb cigarettes / jour</label><input type="number" id="tabac_nb" placeholder="ex: 15" min="0"></div>
+        <div class="form-group"><label>Durée (années)</label><input type="number" id="tabac_duree" placeholder="ex: 10" min="0"></div>
+        <div class="form-group"><label>Paquet-années (PA)</label><input type="text" id="tabac_pa" readonly placeholder="— Auto —" style="background:#f7f6f2; color: var(--amber); font-weight:600;"></div>
+        <div class="form-group"><label>Si ex-fumeur : arrêt depuis</label><input type="text" id="tabac_arret" placeholder="ex: 2 ans"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">🍷</div><h3>Alcool et Substances</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Consommation d'alcool</label>
+          <select id="alcool">
+            <option value="">—</option><option>Aucune</option><option>Occasionnelle (&lt;1 verre/sem)</option>
+            <option>Modérée (1-2 verres/j)</option><option>Excessive (&gt;3 verres/j)</option><option>Dépendance alcoolique</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Type de boisson</label><input type="text" id="alcool_type" placeholder="ex: bière, rhum, clairin..."></div>
+        <div class="form-group"><label>Café</label>
+          <select id="cafe">
+            <option value="">—</option><option>Non</option><option>Oui — 1 tasse/j</option>
+            <option>Oui — 2-3 tasses/j</option><option>Oui — &gt;4 tasses/j</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Thé</label>
+          <select id="the">
+            <option value="">—</option><option>Non</option><option>Oui — occasionnel</option><option>Oui — quotidien</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Cannabis</label>
+          <select id="cannabis">
+            <option value="">—</option><option>Non</option><option>Occasionnel</option>
+            <option>Régulier</option><option>Usage quotidien</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Autres substances</label>
+          <input type="text" id="autres_subst" placeholder="ex: cocaïne, opioïdes, colle...">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-grid">
+        <div class="form-group"><label>Activité physique</label>
+          <select id="activite">
+            <option value="">—</option><option>Sédentaire</option><option>Légère (&lt;150 min/sem)</option>
+            <option>Modérée (150-300 min/sem)</option><option>Intensive (&gt;300 min/sem)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Régime alimentaire</label>
+          <select id="alimentation">
+            <option value="">—</option><option>Sans particularité</option><option>Végétarien</option>
+            <option>Végétalien</option><option>Diabétique</option><option>Sans sel</option><option>Hypocalorique</option><option>Autre</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(7)">← Retour</button><button class="btn btn-primary" onclick="aller(9)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 9: REVUE FONCTIONNELLE -->
+<div class="section" id="s9">
+  <div class="section-title">Revue Fonctionnelle des Appareils</div>
+  <div class="section-sub">Cochez les symptômes présents. Double-clic pour marquer comme absent (rouge)</div>
+  <div class="rf-grid" id="rf-grid"></div>
+  <div class="btn-row" style="margin-top:16px;"><button class="btn btn-ghost" onclick="aller(8)">← Retour</button><button class="btn btn-primary" onclick="aller(10)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 10: EXAMEN PHYSIQUE -->
+<div class="section" id="s10">
+  <div class="section-title">Examen Physique</div>
+  <div class="section-sub">À remplir par le clinicien lors de l'examen du patient</div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">🩺</div><h3>Constantes Vitales</h3></div>
+    <div class="card-body">
+      <div class="form-grid-3">
+        <div class="form-group"><label>Température (°C)</label><input type="number" id="temp" placeholder="ex: 38.5" step="0.1" min="34" max="43"></div>
+        <div class="form-group"><label>TA systolique (mmHg)</label><input type="number" id="ta_sys" placeholder="ex: 120" min="60" max="250" onchange="evalTA()"></div>
+        <div class="form-group"><label>TA diastolique (mmHg)</label><input type="number" id="ta_dia" placeholder="ex: 80" min="40" max="150" onchange="evalTA()"></div>
+        <div class="form-group"><label>FC (bpm)</label><input type="number" id="fc" placeholder="ex: 78" min="20" max="250"></div>
+        <div class="form-group"><label>FR (c/min)</label><input type="number" id="fr" placeholder="ex: 18" min="4" max="60"></div>
+        <div class="form-group"><label>SpO₂ (%)</label><input type="number" id="spo2" placeholder="ex: 98" min="50" max="100"></div>
+        <div class="form-group"><label>Glycémie capillaire (mmol/L)</label><input type="number" id="glycemie" placeholder="ex: 5.6" step="0.1" min="1" max="50"></div>
+        <div class="form-group"><label>Score de Glasgow (3-15)</label><input type="number" id="glasgow" placeholder="15 = normal" min="3" max="15"></div>
+        <div class="form-group"><label>Interprétation TA</label><input type="text" id="ta_interp" readonly style="background:#f7f6f2; font-weight:600;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">🔍</div><h3>Examen par Appareils</h3></div>
+    <div class="card-body">
+      <div class="form-group"><label>Examen général</label><textarea id="ex_general" placeholder="État général, conscience, niveau de coopération, aspect nutritionnel, état d'hydratation, faciès, couleur des conjonctives, muqueuses, ictère, cyanose, hippocratisme digital..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen cardiovasculaire</label><textarea id="ex_cardio" placeholder="Choc de pointe, auscultation cardiaque (bruits normaux/souffles/frottements), bruits cardiaques, pouls périphériques, TRC, signes d'insuffisance cardiaque (crépitants, OMI, turgescence jugulaire)..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen pulmonaire</label><textarea id="ex_pulmo" placeholder="Inspection (amplitude, symétrie), palpation (vibrationsVocales), percussion (sonorité/matité/tympanisme), auscultation (MV, bruits surajoutés : sibilants, ronchi, crépitants)..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen abdominal</label><textarea id="ex_abdo" placeholder="Inspection, palpation (défense, contracture, douleur, hépatomégalie, splénomégalie, masse palpable, ascite), percussion, auscultation (BHN)..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen neurologique</label><textarea id="ex_neuro" placeholder="Conscience, orientation, paires crâniennes, force musculaire, sensibilité, ROT, signe de Babinski, coordination, marche, méningisme (raideur nuque, Kernig, Brudzinski)..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen ostéoarticulaire</label><textarea id="ex_osteo" placeholder="Déformations articulaires, mobilité, douleur, chaleur locale, gonflement, amyotrophie..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen cutané</label><textarea id="ex_cutane" placeholder="Éruption (type, topographie, évolution), lésions (macule, papule, pustule, vésicule, bulles), cicatrices, pétéchies, purpura, ulcères..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen ORL et ophtalmologique</label><textarea id="ex_orl" placeholder="Gorge (érythème, exsudat, ulcération), amygdales, tympans, fosses nasales, vision, fonds d'œil si disponible, ganglions cervicaux..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Examen urogénital</label><textarea id="ex_uro" placeholder="Loges rénales, globe vésical, OGE, TR/TV si indiqué..."></textarea></div>
+      <div class="form-group" style="margin-top:14px;"><label>Remarques cliniques complémentaires</label><textarea id="ex_autres" placeholder="Autres constatations..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(9)">← Retour</button><button class="btn btn-primary" onclick="aller(11)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 11: EXAMENS -->
+<div class="section" id="s11">
+  <div class="section-title">Examens Complémentaires</div>
+  <div class="section-sub">Suggérés par l'IA et validés par le clinicien</div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">🔬</div><h3>Examens à Demander</h3></div>
+    <div class="card-body">
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="suggererExamens()">🤖 Générer suggestions IA</button>
+      <div id="examens-ia-panel" style="display:none;" class="ai-panel">
+        <div class="ai-label">✦ Dr Juddo IA</div>
+        <div class="ai-content" id="examens-ia-content"></div>
+      </div>
+      <div class="divider"></div>
+      <label style="display:block; margin-bottom:8px; font-size:12px; font-weight:600; color:var(--teal-dark); text-transform:uppercase; letter-spacing:0.8px;">Examens biologiques</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;" id="bio-tags">
+        <span class="rf-symptom" onclick="toggleExamen(this,'NFS + frottis sanguin')">NFS + frottis</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'CRP')">CRP</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'VS')">VS</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Glycémie à jeun')">Glycémie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'HbA1c')">HbA1c</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Ionogramme sanguin')">Ionogramme</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Créatininémie + DFG')">Créatinine/DFG</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Urée sanguine')">Urée</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Transaminases (ASAT/ALAT)')">Transaminases</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Bilirubine totale/directe')">Bilirubine</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'GGT / PAL')">GGT/PAL</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Albuminémie')">Albuminémie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Uricémie')">Uricémie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Cholestérol total / LDL / HDL / TG')">Bilan lipidique</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'TSH / T4')">TSH/T4</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'β-hCG')">β-hCG</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Hémocultures ×3')">Hémocultures</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'ECBU')">ECBU</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Procalcitonine (PCT)')">PCT</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Ferritine / Fer sérique / Transferrine')">Bilan martial</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Réticulocytes')">Réticulocytes</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Électrophorèse Hb (Hb-S)')">EPHb</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'VIH 1 et 2')">VIH</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'TPHA / VDRL')">Syphilis</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Sérologie hépatite B (AgHBs, AcHBc)')">Hépatite B</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Sérologie hépatite C (AcVHC)')">Hépatite C</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Frottis + goutte épaisse (paludisme)')">Paludisme</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Coagulation (TP/TCA/INR)')">Coagulation</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Fibrinogène')">Fibrinogène</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'D-dimères')">D-dimères</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Troponines I/T')">Troponine</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'BNP / NT-proBNP')">BNP</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'pH sanguin / gaz du sang')">Gaz du sang</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'LDH')">LDH</span>
+      </div>
+
+      <label style="display:block; margin-bottom:8px; margin-top:16px; font-size:12px; font-weight:600; color:var(--teal-dark); text-transform:uppercase; letter-spacing:0.8px;">Examens d'imagerie</label>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+        <span class="rf-symptom" onclick="toggleExamen(this,'Radiographie thoracique (face)')">Rx thorax</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Radiographie abdominale (ASP)')">ASP</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Échographie abdominale')">Echo abdomen</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Échographie pelvienne')">Echo pelvis</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Échographie obstétricale')">Echo obstétricale</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Échographie cardiaque (ETT)')">ETT</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'ECG 12 dérivations')">ECG</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'TDM cérébrale sans/avec injection')">TDM cérébrale</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'TDM thoraco-abdomino-pelvienne')">TDM TAP</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'IRM cérébrale')">IRM cérébrale</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'IRM rachis')">IRM rachis</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Radiographie osseuse ciblée')">Rx osseuse</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Doppler des membres inférieurs')">Doppler MI</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Fond d\'œil')">Fond d'oeil</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Fibroscopie gastrique')">Fibroscopie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Biopsie (préciser site)')">Biopsie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Mammographie')">Mammographie</span>
+        <span class="rf-symptom" onclick="toggleExamen(this,'Frottis cervical (Pap test)')">Frottis cervical</span>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group"><label>Examens spécifiques / autres à préciser</label>
+        <textarea id="examens_autres" placeholder="Examens spécialisés selon le contexte..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="med-list" id="examens-selected" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(10)">← Retour</button><button class="btn btn-primary" onclick="aller(12)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 12: IMPRESSIONS CLINIQUES -->
+<div class="section" id="s12">
+  <div class="section-title">Impressions Cliniques</div>
+  <div class="section-sub">Analyse diagnostique par l'IA — à valider et compléter par le clinicien</div>
+
+  <div class="card">
+    <div class="card-header card-header-navy"><div class="icon">🧠</div><h3>Analyse Diagnostique IA — Dr Juddo</h3></div>
+    <div class="card-body">
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="genererImpressionsIA()">🤖 Générer l'analyse diagnostique</button>
+      <div id="impressions-ia-panel" class="ai-panel" style="display:none;">
+        <div class="ai-label">✦ Analyse Dr Juddo IA</div>
+        <div class="ai-content" id="impressions-ia-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">✏️</div><h3>Impression Clinique du Médecin</h3></div>
+    <div class="card-body">
+      <div class="form-group"><label>Diagnostic(s) retenu(s) / Impression clinique</label>
+        <textarea id="impression_clinicien" style="min-height:120px;" placeholder="Le clinicien note ici son impression clinique, son diagnostic principal et ses diagnostics différentiels..."></textarea>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Diagnostics différentiels à écarter</label>
+        <textarea id="diag_diff" style="min-height:80px;" placeholder="Diagnostics différentiels à considérer et à écarter..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row"><button class="btn btn-ghost" onclick="aller(11)">← Retour</button><button class="btn btn-primary" onclick="aller(13)">Suivant →</button></div>
+</div>
+
+<!-- SECTION 13: CONDUITE À TENIR -->
+<div class="section" id="s13">
+  <div class="section-title">Conduite à Tenir</div>
+  <div class="section-sub">Plan thérapeutique complet — Médicamenteux, hygiéno-diététique et counseling patient</div>
+
+  <div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, var(--navy), var(--teal-dark));"><div class="icon">💊</div><h3>Plan Thérapeutique IA — Dr Juddo</h3></div>
+    <div class="card-body">
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="genererCAT()">🤖 Générer le plan thérapeutique complet</button>
+      <div id="cat-ia-panel" class="ai-panel" style="display:none;">
+        <div class="ai-label">✦ Plan thérapeutique Dr Juddo IA</div>
+        <div class="ai-content" id="cat-ia-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">📋</div><h3>Ordonnance Médicale — Prescriptions du Médecin</h3></div>
+    <div class="card-body">
+      <div id="prescription-lines">
+        <div class="prescription-entry" style="display:flex; gap:10px; margin-bottom:8px; align-items:center;">
+          <input type="text" placeholder="Médicament (DCI ou commercial)" style="flex:2;">
+          <input type="text" placeholder="Posologie et voie" style="flex:2;">
+          <input type="text" placeholder="Durée / Remarque" style="flex:1;">
+          <button class="btn btn-danger" onclick="supprimerLigne(this)" style="padding:8px 12px;">✕</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost" onclick="ajouterLignePrescription()" style="margin-top:8px;">+ Ajouter une ligne</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">💡</div><h3>Conseils Hygiéno-Diététiques et Counseling</h3></div>
+    <div class="card-body">
+      <div class="form-group">
+        <label>Conseils au patient</label>
+        <textarea id="conseils_patient" style="min-height:140px;" placeholder="Conseils personnalisés : régime alimentaire, activité physique, hygiène de vie, sevrage tabagique/alcoolique, prise en charge psychologique, planification familiale, surveillance à domicile, signes d'alarme à surveiller, quand consulter en urgence..."></textarea>
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Date du prochain rendez-vous</label>
+        <input type="date" id="rdv_suivi">
+      </div>
+      <div class="form-group" style="margin-top:14px;"><label>Orientation / Référence</label>
+        <select id="orientation">
+          <option value="">—</option><option>Aucune référence nécessaire</option>
+          <option>Référence en cardiologie</option><option>Référence en neurologie</option>
+          <option>Référence en gastro-entérologie</option><option>Référence en gynécologie-obstétrique</option>
+          <option>Référence en ophtalmologie</option><option>Référence en pneumologie</option>
+          <option>Référence en dermatologie</option><option>Référence en endocrinologie</option>
+          <option>Référence en hématologie</option><option>Référence en oncologie</option>
+          <option>Référence en psychiatrie</option><option>Référence en ORL</option>
+          <option>Hospitalisation recommandée</option><option>Urgences immédiates</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="aller(12)">← Retour</button>
+    <button class="btn btn-amber" onclick="genererOrdonnance()">📋 Voir Ordonnance</button>
+    <button class="btn btn-primary" onclick="imprimerOrdonnance()">🖨️ Imprimer le dossier</button>
+  </div>
+</div>
+
+<!-- SECTION 14: DEMANDE D'EXAMENS PDF -->
+<div class="section" id="s14">
+  <div class="section-title">Demande d'Examens Complémentaires — PDF</div>
+  <div class="section-sub">Générez un document PDF imprimable à remettre au patient ou au laboratoire</div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">🔬</div><h3>Paramètres de la Demande</h3></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Urgence</label>
+          <select id="dem_urgence">
+            <option value="normal">Routine (non urgent)</option>
+            <option value="urgent">URGENT — À réaliser aujourd'hui</option>
+            <option value="semi">Semi-urgent — Dans les 48h</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Établissement / Laboratoire destinataire</label>
+          <input type="text" id="dem_labo" placeholder="ex: Laboratoire Analyse Bio, Hôpital de l'Université...">
+        </div>
+        <div class="form-group"><label>Renseignements cliniques (motif de la demande)</label>
+          <input type="text" id="dem_motif_clinique" placeholder="ex: Fièvre prolongée, suspicion d'anémie, bilan pré-opératoire...">
+        </div>
+        <div class="form-group"><label>Médecin prescripteur</label>
+          <input type="text" id="dem_medecin" placeholder="ex: Dr Smith PIERRE — Interniste">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <label style="display:block; margin-bottom:10px;">Examens sélectionnés (depuis la section ⑫) — modifiables ici :</label>
+      <div id="dem-examens-preview" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;"></div>
+      <div class="motif-input-wrap">
+        <input type="text" id="dem_exam_extra" placeholder="Ajouter un examen spécifique non listé...">
+        <button class="btn btn-primary" onclick="ajouterExamenDemande()">+ Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, var(--teal-dark), var(--navy));"><div class="icon">👁️</div><h3>Aperçu du Document</h3></div>
+    <div class="card-body">
+      <div id="apercu-demande" style="border:1px solid var(--gray-border); border-radius:var(--radius-sm); padding:24px; background:#FAFAF9;"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="aller(13)">← Retour</button>
+    <button class="btn btn-amber" onclick="previewDemande()">👁️ Actualiser l'aperçu</button>
+    <button class="btn btn-primary" onclick="imprimerDemande()">🖨️ Imprimer / Enregistrer PDF</button>
+  </div>
+</div>
+
+<!-- SECTION 15: RÉSULTATS & ANALYSE IA -->
+<div class="section" id="s15">
+  <div class="section-title">Résultats des Examens &amp; Analyse IA</div>
+  <div class="section-sub">Saisissez ou uploadez les résultats — Dr Juddo les interprète dans le contexte clinique du patient</div>
+
+  <div class="card">
+    <div class="card-header card-header-teal"><div class="icon">📊</div><h3>Saisie des Résultats Biologiques</h3></div>
+    <div class="card-body">
+      <div id="resultats-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;"></div>
+      <button class="btn btn-ghost" style="margin-bottom:12px;" onclick="ajouterLigneResultat()">+ Ajouter un résultat manuellement</button>
+      <div id="resultats-manuels"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-amber"><div class="icon">📄</div><h3>Upload de Document de Résultats</h3></div>
+    <div class="card-body">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-upload').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="upload-icon">📋</div>
+        <div style="font-weight:600; margin-bottom:6px;">Cliquez ou glissez un fichier ici</div>
+        <div style="font-size:13px; color:var(--gray-text);">Formats acceptés : image (JPG, PNG) ou PDF scanné — L'IA extraira et analysera les résultats</div>
+        <input type="file" id="file-upload" accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)">
+      </div>
+      <div id="file-preview-area"></div>
+      <div class="form-group" style="margin-top:16px;">
+        <label>Ou collez directement le texte des résultats</label>
+        <textarea id="resultats_texte" style="min-height:120px;" placeholder="Collez ici le texte brut des résultats (ex : copié depuis un rapport de laboratoire)...&#10;&#10;Exemple :&#10;NFS : Hémoglobine 9.2 g/dL (N: 12-16), GB 11 200/mm3, Plaquettes 320 000&#10;CRP : 48 mg/L (N < 5)&#10;Créatinine : 142 µmol/L (N: 50-100)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header card-header-navy"><div class="icon">🧠</div><h3>Analyse IA des Résultats — Dr Juddo</h3></div>
+    <div class="card-body">
+      <div class="alert alert-info" style="margin-bottom:16px;">L'IA analyse les résultats en tenant compte du profil complet du patient (âge, sexe, antécédents, médicaments, symptômes). Elle identifie les anomalies, leur signification clinique et les implications thérapeutiques.</div>
+      <button class="btn btn-primary" style="margin-bottom:16px;" onclick="analyserResultatsIA()">🤖 Analyser les résultats avec Dr Juddo IA</button>
+      <div id="resultats-ia-panel" class="ai-panel" style="display:none;">
+        <div class="ai-label">✦ Analyse des Résultats — Dr Juddo IA</div>
+        <div class="ai-content" id="resultats-ia-content"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-group">
+        <label>Commentaire du clinicien sur les résultats</label>
+        <textarea id="commentaire_resultats" style="min-height:80px;" placeholder="Le clinicien ajoute son interprétation personnelle des résultats..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="aller(14)">← Retour</button>
+    <button class="btn btn-amber" onclick="genererOrdonnance()">📋 Mettre à jour l'ordonnance</button>
+    <button class="btn btn-primary" onclick="imprimerResultats()">🖨️ Imprimer le rapport de résultats</button>
+  </div>
+</div>
+
+<!-- MODAL ORDONNANCE -->
+<div id="ordonnance-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; overflow:auto; padding:30px;">
+  <div style="max-width:750px; margin:0 auto; background:white; border-radius:12px; padding:32px; position:relative;">
+    <button onclick="document.getElementById('ordonnance-modal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:24px; cursor:pointer;">×</button>
+    <div id="ordonnance-content"></div>
+    <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('ordonnance-modal').style.display='none'">Fermer</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimer</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+const SECTIONS = 14;
+let currentSection = 0;
+let motifs = [];
+let meds = [];
+let examensSelectionnes = [];
+const MEDS_DB = [
+  'Paracétamol','Ibuprofène','Amoxicilline','Amoxicilline-Clavulanate','Azithromycine','Ciprofloxacine',
+  'Métronidazole','Cloxacilline','Ampicilline','Cotrimoxazole (TMP-SMX)','Doxycycline','Ceftriaxone',
+  'Cefixime','Érythromycine','Clindamycine','Rifampicine','Isoniazide','Pyrazinamide','Éthambutol',
+  'Quinine','Artéméther-Luméfantrine','Chloroquine','Méfloquine','Primaquine',
+  'Metformine','Glibenclamide','Gliclazide','Insuline NPH','Insuline rapide','Insuline glargine',
+  'Sitagliptine','Empagliflozine','Dapagliflozine','Exénatide',
+  'Amlodipine','Losartan','Ramipril','Énalapril','Captopril','Bisoprolol','Aténolol','Métoprolol',
+  'Furosémide','Hydrochlorothiazide','Spironolactone','Diltiazem','Vérapamil','Nifédipine',
+  'Aspirine','Clopidogrel','Warfarine','Rivaroxaban','Apixaban','Dabigatran','Héparine',
+  'Simvastatine','Atorvastatine','Rosuvastatine','Pravastatine',
+  'Oméprazole','Ésoméprazole','Pantoprazole','Ranitidine','Dompéridone','Métoclopramide',
+  'Antiacides','Hyoscine','Loperamide','Sels de réhydratation orale (SRO)',
+  'Acide folique','Fer ferreux','Vitamine B12','Vitamine D3','Calcium','Zinc','Multivitamines',
+  'Salbutamol (inhalé)','Béclométhasone (inhalé)','Fluticasone (inhalé)','Tiotropium',
+  'Ipratropium','Théophylline','Prednisone','Dexaméthasone','Méthylprednisolone','Hydrocortisone',
+  'Lévothyroxine','Méthimazole','Propylthiouracile',
+  'Haldol (Halopéridol)','Olanzapine','Rispéridone','Diazépam','Lorazépam','Phénobarbital',
+  'Carbamazépine','Valproate','Lévétiracétam','Phénytoïne','Clonazépam',
+  'Amitriptyline','Fluoxétine','Sertraline','Paroxétine','Mirtazapine',
+  'Morphine','Tramadol','Codéine','Diclofénac','Naproxène','Celecoxib','Meloxicam',
+  'Hydroxychloroquine','Méthotrexate','Azathioprine','Prédnisolone',
+  'Cotrimoxazole prophylaxie','Fluconazole','Kétoconazole','Nystatine','Albendazole','Mébendazole',
+  'Permétrine','Ivermectine','Praziquantel',
+  'Contraceptif oral combiné','Progestatif seul (pilule)','Lévonorgestrel','Mifépristone',
+  'Oxytocine','Misoprostol','Ergométrine','Sulfate de magnésium',
+  'Rétinol (Vit A)','Thiamine (Vit B1)','Riboflavine (Vit B2)','Niacine (Vit B3)','Pyridoxine (Vit B6)',
+  'Daflon (Diosmine)','Pentoxifylline','Dihydroergotamine','Veinotonic','Atorvastatine 10mg',
+  'Xalatan (Latanoprost)','Timolol (ophta)','Brimonidine (ophta)','Bêta-histine','Métopirone',
+  'SRO','Soluté de Ringer','NaCl 0.9%','Sérum glucosé 5%','Sérum glucosé 10%',
+];
+
+function aller(idx) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('s'+idx).classList.add('active');
+  document.getElementById('nav'+idx).classList.add('active');
+  currentSection = idx;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function toggleCB(item) {
+  const cb = item.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+  if(cb.id === 'cb_glaucome') document.getElementById('glaucome-type').style.display = cb.checked ? 'block':'none';
+  if(cb.id === 'cb_cancer') document.getElementById('cancer-type').style.display = cb.checked ? 'block':'none';
+}
+
+function ajouterMotif() {
+  const input = document.getElementById('motif-input');
+  const v = input.value.trim();
+  if(!v) return;
+  motifs.push(v);
+  renderMotifs();
+  input.value = '';
+  document.getElementById('badge-motif').textContent = motifs.length;
+  document.getElementById('badge-motif').className = 'badge' + (motifs.length > 0 ? ' complete':'');
+}
+function ajouterMotifRapide(m) { document.getElementById('motif-input').value = m; ajouterMotif(); }
+function supprimerMotif(idx) { motifs.splice(idx,1); renderMotifs(); document.getElementById('badge-motif').textContent = motifs.length; }
+function renderMotifs() {
+  const c = document.getElementById('motifs-container');
+  c.innerHTML = motifs.map((m,i)=>`<div class="motif-tag">${m}<button onclick="supprimerMotif(${i})">×</button></div>`).join('');
+}
+
+function rechercherMed(q) {
+  const dd = document.getElementById('med-dropdown');
+  if(!q) { dd.style.display='none'; return; }
+  const matches = MEDS_DB.filter(m=>m.toLowerCase().includes(q.toLowerCase())).slice(0,10);
+  if(!matches.length) { dd.style.display='none'; return; }
+  dd.innerHTML = matches.map(m=>`<div class="med-option" onclick="selectMed('${m}')">${m}</div>`).join('');
+  dd.style.display='block';
+}
+function selectMed(name) {
+  document.getElementById('med-input').value = name;
+  document.getElementById('med-dropdown').style.display='none';
+}
+function ajouterMed() {
+  const nom = document.getElementById('med-input').value.trim();
+  const dose = document.getElementById('med-dose').value.trim();
+  if(!nom) return;
+  meds.push({nom, dose});
+  renderMeds();
+  document.getElementById('med-input').value='';
+  document.getElementById('med-dose').value='';
+}
+function renderMeds() {
+  document.getElementById('meds-list').innerHTML = meds.map((m,i)=>
+    `<div class="med-tag">${m.nom}${m.dose?' — '+m.dose:''}<button onclick="meds.splice(${i},1);renderMeds()">×</button></div>`
+  ).join('');
+}
+
+function toggleExamen(el, name) {
+  const idx = examensSelectionnes.indexOf(name);
+  if(idx === -1) { examensSelectionnes.push(name); el.classList.add('selected'); }
+  else { examensSelectionnes.splice(idx,1); el.classList.remove('selected'); }
+  document.getElementById('examens-selected').innerHTML = examensSelectionnes.map((e,i)=>
+    `<div class="med-tag">${e}<button onclick="examensSelectionnes.splice(${i},1);document.getElementById('examens-selected').innerHTML=examensSelectionnes.map((e,i)=>'<div class=med-tag>'+e+'</div>').join('')">×</button></div>`
+  ).join('');
+}
+
+function calculerAge() {
+  const ddn = document.getElementById('ddn').value;
+  if(!ddn) return;
+  const age = Math.floor((new Date() - new Date(ddn)) / (365.25*24*3600*1000));
+  document.getElementById('age').value = age;
+}
+function calculerIMC() {
+  const p=parseFloat(document.getElementById('poids').value), t=parseFloat(document.getElementById('taille').value)/100;
+  if(p && t) {
+    const imc=(p/(t*t)).toFixed(1);
+    let label=''; 
+    if(imc<18.5) label=' (Insuffisance pondérale)';
+    else if(imc<25) label=' (Normale)';
+    else if(imc<30) label=' (Surpoids)';
+    else if(imc<35) label=' (Obésité modérée)';
+    else if(imc<40) label=' (Obésité sévère)';
+    else label=' (Obésité morbide)';
+    document.getElementById('imc').value = imc + label;
+  }
+}
+function evalTA() {
+  const s=parseInt(document.getElementById('ta_sys').value), d=parseInt(document.getElementById('ta_dia').value);
+  if(!s||!d) return;
+  let label='';
+  if(s<90||d<60) label='⚠️ Hypotension';
+  else if(s<120&&d<80) label='✅ Normale';
+  else if(s<130&&d<80) label='⚠️ Élevée';
+  else if(s<140||d<90) label='⚠️ HTA grade 1';
+  else if(s<180||d<110) label='🔴 HTA grade 2';
+  else label='🚨 HTA grade 3 / Urgence hypertensive';
+  document.getElementById('ta_interp').value = label;
+}
+function synchroNom() {}
+function toggleObGyn() {
+  const s = document.getElementById('sexe').value;
+  document.getElementById('obgyn-block').style.opacity = (s==='M') ? '0.5':'1';
+  if(s==='M') document.getElementById('obgyn-sub').textContent='Section non applicable (patient de sexe masculin)';
+  else document.getElementById('obgyn-sub').textContent='Section réservée aux patientes de sexe féminin';
+}
+function toggleTabac() {
+  const s = document.getElementById('tabac_statut').value;
+  const fields = ['tabac_type','tabac_nb','tabac_duree'];
+  fields.forEach(f=>{ const el=document.getElementById(f).parentElement; el.style.opacity=(s==='non')?'0.4':'1'; });
+}
+document.getElementById('tabac_nb').addEventListener('input',calcPA);
+document.getElementById('tabac_duree').addEventListener('input',calcPA);
+function calcPA() {
+  const nb=parseFloat(document.getElementById('tabac_nb').value), dur=parseFloat(document.getElementById('tabac_duree').value);
+  if(nb&&dur) document.getElementById('tabac_pa').value = (nb/20*dur).toFixed(1)+' PA';
+}
+
+// REVUE FONCTIONNELLE
+const RF_DATA = [
+  { label:'Général', icon:'🌡️', symptoms:['Fièvre','Frissons','Sueurs nocturnes','Asthénie profonde','Perte de poids','Anorexie','Adénopathies'] },
+  { label:'Cardiovasculaire', icon:'❤️', symptoms:['Douleur thoracique','Palpitations','Dyspnée d\'effort','Dyspnée de repos','DPN / orthopnée','Œdèmes des membres','Syncope / lipothymie','Claudication intermittente'] },
+  { label:'Respiratoire', icon:'🫁', symptoms:['Toux sèche','Toux productive','Hémoptysie','Dyspnée','Wheezing / sifflements','Douleur pleurale','Apnées du sommeil'] },
+  { label:'Digestif', icon:'🫄', symptoms:['Nausées','Vomissements','Diarrhée','Constipation','Douleur abdominale','Brûlures épigastriques','Pyrosis','Dysphagie','Méléna','Rectorragie','Hépatalgie','Jaunisse/ictère','Distension abdominale'] },
+  { label:'Neurologique', icon:'🧠', symptoms:['Céphalées','Vertiges','Paresthésies','Faiblesse motrice','Trouble de la parole','Trouble de la mémoire','Trouble du comportement','Syncope','Convulsions','Diplopie','Trouble de la marche'] },
+  { label:'Musculo-squelettique', icon:'🦴', symptoms:['Arthralgies','Myalgies','Lombalgies','Dorsalgies','Raideur matinale','Gonflement articulaire','Limitation de mobilité','Crampes'] },
+  { label:'Génito-urinaire', icon:'🫧', symptoms:['Dysurie','Pollakiurie','Nycturie','Hématurie','Oligurie / anurie','Douleur lombaire','Incontinence urinaire','Brûlures mictionnelles'] },
+  { label:'Dermatologique', icon:'🩹', symptoms:['Éruption cutanée','Prurit','Urticaire','Alopécie','Lésions pigmentées','Plaies / ulcères','Pétéchies / purpura','Ictère cutané'] },
+  { label:'ORL et Ophtalmologique', icon:'👁️', symptoms:['Douleur oculaire','Trouble visuel','Photophobie','Baisse acuité visuelle','Épistaxis','Obstruction nasale','Otalgie','Hypoacousie','Otalorrhée','Douleur pharyngée'] },
+  { label:'Psychiatrique', icon:'🧩', symptoms:['Humeur dépressive','Anxiété','Insomnie','Hypersomnie','Idées suicidaires','Hallucinations','Trouble de la mémoire','Agitation'] },
+  { label:'Endocrinien / Métabolique', icon:'⚗️', symptoms:['Polydipsie','Polyurie','Polyphagie','Intolérance à la chaleur','Intolérance au froid','Prise de poids rapide','Perte de poids rapide','Tremblement'] },
+  { label:'Gynécologique (si applicable)', icon:'🌸', symptoms:['Douleurs pelviennes','Pertes vaginales anormales','Prurit vulvaire','Ménorragies','Métrorragies','Dyspareunie','Masse pelvienne perçue'] },
+];
+function initRF() {
+  const grid = document.getElementById('rf-grid');
+  grid.innerHTML = RF_DATA.map(app=>`
+    <div class="rf-item">
+      <div class="rf-item-header">${app.icon} ${app.label}</div>
+      <div class="rf-item-body">
+        <div class="rf-symptoms">${app.symptoms.map(s=>`<span class="rf-symptom" onclick="toggleRF(this)">${s}</span>`).join('')}</div>
+        <input type="text" placeholder="Remarques..." style="font-size:12px; padding:5px 8px; margin-top:4px; width:100%;">
+      </div>
+    </div>
+  `).join('');
+}
+function toggleRF(el) {
+  if(el.classList.contains('selected')) { el.classList.remove('selected'); el.classList.add('negative'); }
+  else if(el.classList.contains('negative')) { el.classList.remove('negative'); }
+  else { el.classList.add('selected'); }
+}
+
+function ajouterLignePrescription() {
+  const container = document.getElementById('prescription-lines');
+  const line = document.createElement('div');
+  line.className = 'prescription-entry';
+  line.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;align-items:center;';
+  line.innerHTML = `<input type="text" placeholder="Médicament (DCI ou commercial)" style="flex:2;"><input type="text" placeholder="Posologie et voie" style="flex:2;"><input type="text" placeholder="Durée / Remarque" style="flex:1;"><button class="btn btn-danger" onclick="supprimerLigne(this)" style="padding:8px 12px;">✕</button>`;
+  container.appendChild(line);
+}
+function supprimerLigne(btn) { btn.parentElement.remove(); }
+
+function collecterDossier() {
+  const nom = document.getElementById('nom').value || '—';
+  const prenom = document.getElementById('prenom').value || '—';
+  const age = document.getElementById('age').value || '—';
+  const sexe = document.getElementById('sexe').value || '—';
+  const education = document.getElementById('education').value || '—';
+  const profession = document.getElementById('profession').value || '—';
+  const poids = document.getElementById('poids').value || '—';
+  const taille = document.getElementById('taille').value || '—';
+  const imc = document.getElementById('imc').value || '—';
+  const motifStr = motifs.join(', ') || '—';
+  const anamnese = document.getElementById('anamnese').value || '—';
+  const atcdCheckboxes = ['hta','diab','epilepsie','asthme','anemie_fal','muco','avc','irc','ic','bpco','tb','vih','cancer','lupus','poly','glaucome','depre','hypo','hyper','rgo'].filter(id=>document.getElementById('cb_'+id)?.checked).join(', ') || 'Aucun';
+  const atcdAutre = document.getElementById('atcd_autre').value || '';
+  const trauma = document.getElementById('atcd_trauma').value || '—';
+  const chir = document.getElementById('atcd_chir').value || '—';
+  const medsStr = meds.map(m=>m.nom+(m.dose?' ('+m.dose+')':'')).join(', ') || 'Aucun';
+  const allergieMed = document.getElementById('allergie_med').value || 'Aucune';
+  const allergieAlim = document.getElementById('allergie_alim').value || 'Aucune';
+  const allergieEnv = document.getElementById('allergie_env').value || 'Aucune';
+  const famCheckboxes = ['hta','diab','avc','mort_sub','asthme','anemie','muco','cancer','cardio','tb','epilepsie','troubles_mentaux'].filter(id=>document.getElementById('fam_'+id)?.checked).join(', ') || 'Aucun';
+  const tabac = document.getElementById('tabac_statut').value || 'Non précisé';
+  const tabacNb = document.getElementById('tabac_nb').value || '';
+  const tabacDuree = document.getElementById('tabac_duree').value || '';
+  const tabacPA = document.getElementById('tabac_pa').value || '';
+  const alcool = document.getElementById('alcool').value || 'Non précisé';
+  const grossesse = document.getElementById('grossesse_actuelle').value || 'Non applicable';
+  const gestite = document.getElementById('gestite').value || '?';
+  const parite = document.getElementById('parite').value || '?';
+  const avort = document.getElementById('avort').value || '?';
+  const ev = document.getElementById('ev').value || '?';
+  const ddr = document.getElementById('ddr').value || '—';
+  const temp = document.getElementById('temp').value;
+  const ta_sys = document.getElementById('ta_sys').value;
+  const ta_dia = document.getElementById('ta_dia').value;
+  const fc = document.getElementById('fc').value;
+  const spo2 = document.getElementById('spo2').value;
+  const exGeneral = document.getElementById('ex_general').value || 'Non renseigné';
+  const exCardio = document.getElementById('ex_cardio').value || 'Non renseigné';
+  const exPulmo = document.getElementById('ex_pulmo').value || 'Non renseigné';
+  const exAbdo = document.getElementById('ex_abdo').value || 'Non renseigné';
+  const exNeuro = document.getElementById('ex_neuro').value || 'Non renseigné';
+  const rfSelected = Array.from(document.querySelectorAll('.rf-symptom.selected')).map(el=>el.textContent).join(', ') || 'Aucun symptôme sélectionné';
+  const rfNegative = Array.from(document.querySelectorAll('.rf-symptom.negative')).map(el=>el.textContent).join(', ') || 'Aucun';
+  const impressionClinicient = document.getElementById('impression_clinicien').value || '';
+  const examensStr = examensSelectionnes.join(', ') || '';
+
+  return { nom,prenom,age,sexe,education,profession,poids,taille,imc,motifStr,anamnese,atcdCheckboxes,atcdAutre,trauma,chir,medsStr,allergieMed,allergieAlim,allergieEnv,famCheckboxes,tabac,tabacNb,tabacDuree,tabacPA,alcool,grossesse,gestite,parite,avort,ev,ddr,temp,ta_sys,ta_dia,fc,spo2,exGeneral,exCardio,exPulmo,exAbdo,exNeuro,rfSelected,rfNegative,impressionClinicient,examensStr };
+}
+
+async function suggererExamens() {
+  const d = collecterDossier();
+  const panel = document.getElementById('examens-ia-panel');
+  const content = document.getElementById('examens-ia-content');
+  panel.style.display='block';
+  content.innerHTML='<span class="ai-spinner"></span> Dr Juddo analyse le dossier...';
+  content.className='ai-content loading';
+
+  const prompt = `Tu es Dr Juddo, un système expert médical avancé. En te basant sur ce dossier clinique, propose une liste raisonnée et personnalisée des examens complémentaires à demander.
+
+DOSSIER PATIENT :
+- Nom : ${d.nom} ${d.prenom}, ${d.age} ans, Sexe : ${d.sexe}
+- IMC : ${d.imc}, Poids : ${d.poids}kg
+- Motif(s) de consultation : ${d.motifStr}
+- Anamnèse : ${d.anamnese}
+- Antécédents médicaux : ${d.atcdCheckboxes}
+- Médicaments actuels : ${d.medsStr}
+- Allergies médicamenteuses : ${d.allergieMed}
+- Symptômes présents (revue fonctionnelle) : ${d.rfSelected}
+- Grossesse : ${d.grossesse}
+- Constantes : T°${d.temp||'?'}°C, TA ${d.ta_sys||'?'}/${d.ta_dia||'?'} mmHg, FC ${d.fc||'?'} bpm, SpO2 ${d.spo2||'?'}%
+
+Pour chaque examen proposé, explique pourquoi il est indiqué dans CE contexte précis. Classe par priorité (urgent, à court terme, à planifier). Tiens compte des antécédents, des symptômes, du sexe, de la grossesse éventuelle et des comorbidités. Sois exhaustif mais cliniquement justifié.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    content.textContent = data.content?.[0]?.text || 'Erreur de génération.';
+    content.className='ai-content';
+  } catch(e) { content.textContent='Erreur de connexion à l\'IA.'; content.className='ai-content'; }
+}
+
+async function genererImpressionsIA() {
+  const d = collecterDossier();
+  const panel = document.getElementById('impressions-ia-panel');
+  const content = document.getElementById('impressions-ia-content');
+  panel.style.display='block';
+  content.innerHTML='<span class="ai-spinner"></span> Dr Juddo formule les impressions diagnostiques...';
+  content.className='ai-content loading';
+
+  const prompt = `Tu es Dr Juddo, système expert en médecine clinique. Analyse ce dossier et propose une impression clinique structurée avec diagnostics différentiels hiérarchisés, expliquant le raisonnement clinique.
+
+DOSSIER COMPLET :
+Patient : ${d.nom} ${d.prenom}, ${d.age} ans, Sexe : ${d.sexe}, Profession : ${d.profession}
+IMC : ${d.imc}
+Motif(s) : ${d.motifStr}
+Histoire : ${d.anamnese}
+
+ANTÉCÉDENTS MÉDICAUX : ${d.atcdCheckboxes}${d.atcdAutre?'\nAutres : '+d.atcdAutre:''}
+Traumatologie/Chirurgie : ${d.trauma} | ${d.chir}
+Médicaments : ${d.medsStr}
+Allergies médicamenteuses : ${d.allergieMed}
+Allergie alimentaire : ${d.allergieAlim}
+Antécédents familiaux : ${d.famCheckboxes}
+
+HABITUDES : Tabac : ${d.tabac} ${d.tabacNb?' — '+d.tabacNb+' cig/j, '+d.tabacDuree+' ans, '+d.tabacPA:''} | Alcool : ${d.alcool}
+${d.sexe==='F'?'OB-GYN : G'+d.gestite+' P'+d.parite+' A'+d.avort+' Ev'+d.ev+', DDR: '+d.ddr+', Grossesse: '+d.grossesse:''}
+
+REVUE FONCTIONNELLE :
+Symptômes positifs : ${d.rfSelected}
+Symptômes absents : ${d.rfNegative}
+
+CONSTANTES VITALES :
+Température : ${d.temp||'NP'}°C | TA : ${d.ta_sys||'NP'}/${d.ta_dia||'NP'} mmHg | FC : ${d.fc||'NP'} bpm | SpO2 : ${d.spo2||'NP'}%
+
+EXAMEN PHYSIQUE :
+Général : ${d.exGeneral}
+Cardio : ${d.exCardio}
+Pulmo : ${d.exPulmo}
+Abdominal : ${d.exAbdo}
+Neuro : ${d.exNeuro}
+
+Impression du clinicien : ${d.impressionClinicient || 'Non renseignée'}
+
+Fournis : 1. Diagnostic principal le plus probable avec justification. 2. Diagnostics différentiels classés par probabilité. 3. Arguments pour et contre chaque diagnostic. 4. Signes d'alarme à surveiller. Utilise une structure claire.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    content.textContent = data.content?.[0]?.text || 'Erreur.';
+    content.className='ai-content';
+  } catch(e) { content.textContent='Erreur de connexion.'; content.className='ai-content'; }
+}
+
+async function analyserAvecIA() { genererImpressionsIA(); aller(12); }
+
+async function genererCAT() {
+  const d = collecterDossier();
+  const panel = document.getElementById('cat-ia-panel');
+  const content = document.getElementById('cat-ia-content');
+  panel.style.display='block';
+  content.innerHTML='<span class="ai-spinner"></span> Dr Juddo élabore le plan thérapeutique personnalisé...';
+  content.className='ai-content loading';
+  const impressionIA = document.getElementById('impressions-ia-content').textContent || '';
+  const catMedecin = document.getElementById('impression_clinicien').value || '';
+
+  const prompt = `Tu es Dr Juddo, expert en pharmacologie clinique et médecine interne. Élabore un plan thérapeutique complet, personnalisé et exhaustif pour ce patient.
+
+PATIENT :
+${d.nom} ${d.prenom}, ${d.age} ans, Sexe : ${d.sexe}, IMC : ${d.imc}
+Motif(s) : ${d.motifStr}
+Anamnèse : ${d.anamnese}
+
+COMORBIDITÉS : ${d.atcdCheckboxes}
+MÉDICAMENTS EN COURS (co-médications) : ${d.medsStr}
+ALLERGIES MÉDICAMENTEUSES : ${d.allergieMed}
+Antécédents familiaux : ${d.famCheckboxes}
+Tabac : ${d.tabac} ${d.tabacNb?'— '+d.tabacNb+' cig/j, '+d.tabacPA:''}
+Alcool : ${d.alcool}
+${d.sexe==='F'?'GROSSESSE : '+d.grossesse+' | DDR : '+d.ddr:'' }
+Symptômes présents : ${d.rfSelected}
+
+DIAGNOSTIC RETENU :
+${catMedecin || impressionIA || 'À déterminer selon le contexte'}
+
+PLAN THÉRAPEUTIQUE À PRODUIRE :
+
+1. **MESURES NON-PHARMACOLOGIQUES** : Conseils hygiéno-diététiques, activité physique, alimentation, sevrage tabagique/alcoolique, éducation thérapeutique du patient selon son niveau d'éducation (${d.education}).
+
+2. **PHARMACOTHÉRAPIE DÉTAILLÉE** — Pour chaque classe pharmacologique pertinente, donne au moins une option de première intention, une alternative et les justifications. Inclure TOUTES les familles pertinentes :
+   - Antalgiques (palier I, II, III selon EVA)
+   - Anti-infectieux (antibiotiques, antiparasitaires, antiviraux, antifongiques) avec spectre et durée
+   - Antihypertenseurs (IEC, ARA II, ICa, BB, diurétiques, alpha-bloquants)
+   - Hypoglycémiants (metformine, sulfamides, glinides, DPP4, SGLT2, GLP1, insuline)
+   - Hypolipémiants (statines, fibrates, ézétimibe)
+   - Bronchodilatateurs, corticoïdes inhalés, antiasthmatiques
+   - Anticoagulants / antiagrégants
+   - Antiépileptiques
+   - Psychotropes (antidépresseurs, antipsychotiques, anxiolytiques)
+   - Correcteurs digestifs (IPP, prokinétiques, antiacides)
+   - Suppléments (fer, acide folique, vitamine D, calcium, zinc)
+   - Antipaludéens (si contexte endémique)
+   - Autres classes selon le contexte clinique
+   Pour chaque médicament : DCI, posologie, voie, fréquence, durée, contre-indications spécifiques à CE patient, interactions avec ses co-médicaments actuels.
+
+3. **CONTRE-INDICATIONS FORMELLES** pour ce patient (en fonction de ses comorbidités et allergies).
+
+4. **INTERACTIONS MÉDICAMENTEUSES** importantes à surveiller avec les médicaments déjà pris.
+
+5. **SURVEILLANCE ET SUIVI** : Paramètres à monitorer, fréquence des contrôles.
+
+6. **ORIENTATION** : Spécialiste à consulter si nécessaire, critères d'hospitalisation.
+
+Sois exhaustif, cliniquement précis et adapte chaque recommandation à ce patient spécifique en tenant compte de son âge, sexe, comorbidités, co-médications, niveau d'éducation et contexte.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    content.textContent = data.content?.[0]?.text || 'Erreur.';
+    content.className='ai-content';
+  } catch(e) { content.textContent='Erreur de connexion.'; content.className='ai-content'; }
+}
+
+function genererOrdonnance() {
+  const nom = document.getElementById('nom').value;
+  const prenom = document.getElementById('prenom').value;
+  const age = document.getElementById('age').value;
+  const sexe = document.getElementById('sexe').value;
+  const medecin = document.getElementById('medecin').value || '_______________';
+  const date = document.getElementById('date_consult').value || new Date().toLocaleDateString('fr-FR');
+  const impression = document.getElementById('impression_clinicien').value || (document.getElementById('impressions-ia-content').textContent.substring(0,150)||'—');
+  const lignes = Array.from(document.querySelectorAll('.prescription-entry')).map(e=>{
+    const inputs = e.querySelectorAll('input');
+    if(inputs[0]?.value) return {med:inputs[0].value, dose:inputs[1]?.value||'', dur:inputs[2]?.value||''};
+    return null;
+  }).filter(Boolean);
+  const conseils = document.getElementById('conseils_patient').value || '';
+  const orientation = document.getElementById('orientation').value || '';
+  const rdv = document.getElementById('rdv_suivi').value;
+  const examens = examensSelectionnes.join('\n - ');
+
+  const content = document.getElementById('ordonnance-content');
+  content.innerHTML = `
+    <div class="prescription-box">
+      <div class="rx-header">
+        <div><div class="rx-logo">Dr Juddo</div><div style="font-size:13px;color:#5F5E5A;">Système de Consultation Médicale</div></div>
+        <div class="rx-date"><strong>Date :</strong> ${typeof date === 'string' ? date : new Date(date).toLocaleDateString('fr-FR')}<br><strong>Médecin :</strong> ${medecin}</div>
+      </div>
+      <div class="rx-patient"><strong>Patient :</strong> ${nom||'—'} ${prenom||''} | <strong>Âge :</strong> ${age||'?'} ans | <strong>Sexe :</strong> ${sexe||'?'}</div>
+      ${impression ? `<div style="font-size:13px;margin-bottom:16px;padding:10px;background:#f7f6f2;border-radius:6px;"><strong>Diagnostic(s) :</strong> ${impression.substring(0,200)}...</div>` : ''}
+      ${lignes.length > 0 ? `
+      <div class="rx-meds">
+        <div style="font-weight:600;margin-bottom:10px;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#0C2340;">PRESCRIPTION</div>
+        ${lignes.map((l,i)=>`<div class="rx-med-item"><strong>${i+1}. ${l.med}</strong><br><span style="color:#5F5E5A;font-size:13px;">${l.dose}${l.dur?' — Durée : '+l.dur:''}</span></div>`).join('')}
+      </div>` : '<div style="color:#5F5E5A;font-style:italic;margin-bottom:16px;">Aucun médicament prescrit</div>'}
+      ${examens ? `<div style="margin-bottom:16px;"><strong style="font-size:13px;text-transform:uppercase;letter-spacing:1px;">Examens à réaliser :</strong><div style="font-size:13px;margin-top:6px;">- ${examens.replace(/\n/g,'<br>- ')}</div></div>` : ''}
+      ${conseils ? `<div style="font-size:13px;margin-bottom:16px;padding:10px;border:1px solid #D3D1C7;border-radius:6px;"><strong>Conseils :</strong><br>${conseils.replace(/\n/g,'<br>')}</div>` : ''}
+      ${orientation&&orientation!='—' ? `<div style="font-size:13px;margin-bottom:16px;color:#185FA5;"><strong>🏥 Référence :</strong> ${orientation}</div>` : ''}
+      ${rdv ? `<div style="font-size:13px;margin-bottom:16px;"><strong>📅 Prochain RDV :</strong> ${new Date(rdv).toLocaleDateString('fr-FR')}</div>` : ''}
+      <div class="rx-footer">
+        <div class="rx-sig">
+          <div class="sig-line"></div>
+          <div style="font-size:12px;color:#5F5E5A;">Signature et cachet du médecin</div>
+          <div style="font-size:12px;font-weight:600;margin-top:4px;">${medecin}</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:24px;font-size:10px;color:#888780;border-top:1px solid #D3D1C7;padding-top:12px;">Dr Juddo — Système de Consultation Médicale IA | Ce document est généré à titre d'aide à la décision médicale. La prescription finale relève de la responsabilité exclusive du médecin traitant.</div>
+    </div>`;
+  document.getElementById('ordonnance-modal').style.display='block';
+}
+
+function imprimerOrdonnance() { genererOrdonnance(); setTimeout(()=>window.print(),500); }
+
+function nouvelleConsultation() {
+  if(!confirm('Démarrer une nouvelle consultation ? Les données non sauvegardées seront perdues.')) return;
+  location.reload();
+}
+
+// Init
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('date_consult').value = new Date().toISOString().split('T')[0];
+  initRF();
+});
+document.addEventListener('click', e => {
+  if(!e.target.closest('.med-search-wrap')) document.getElementById('med-dropdown').style.display='none';
+});
+</script>
+</body>
+</html>
